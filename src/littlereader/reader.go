@@ -54,6 +54,9 @@ function hide(s, link) {
 	for folderName, folder := range folders {
 		buffer.WriteString(fmt.Sprintf("<h2>%s</h2>", folderName))
 		for _, source := range folder {
+			if !anyNonRead(source) {
+				continue
+			}
 			buffer.WriteString(fmt.Sprintf("<h3>%s</h3>", source.Title))
 			buffer.WriteString("<ul>")
 			for _, entry := range source.Entries {
@@ -71,6 +74,15 @@ function hide(s, link) {
 	}
 	buffer.WriteString("</body></html>")
 	return buffer.String()
+}
+
+func anyNonRead(source *Source) bool {
+	for _, entry := range source.Entries {
+		if !entry.Read {
+			return true
+		}
+	}
+	return false
 }
 
 func markAsRead(ctx *web.Context) {
