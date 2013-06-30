@@ -5,6 +5,9 @@ default: run
 requirements:
 	./requirements.sh
 
+reader: lib
+	GOPATH=`pwd` go build src/progs/reader.go
+
 lib: test
 	GOPATH=`pwd` go install littlereader
 

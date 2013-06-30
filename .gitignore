@@ -3,3 +3,4 @@ src/github.com
 pkg
 *.json
 *.xml
+reader

@@ -38,16 +38,16 @@ type Feed struct {
 }
 
 type AtomEntry struct {
-	Title       string `xml:"title"`
-	Link        Link   `xml:"link"`
-	Id          string `xml:"id"`
-	Published   string `xml:"published"`
-	Updated     string `xml:"updated"`
-	Author      string `xml:"author>name"`
-	SummaryType string `xml:"summary>type,attr"`
-	Summary     string `xml:"summary"`
-	ContentType string `xml:"content>type,attr"`
-	Content     string `xml:"content"`
+	Title     string `xml:"title"`
+	Link      Link   `xml:"link"`
+	Id        string `xml:"id"`
+	Published string `xml:"published"`
+	Updated   string `xml:"updated"`
+	Author    string `xml:"author>name"`
+	// SummaryType string `xml:"summary>type,attr"`
+	Summary string `xml:"summary"`
+	// ContentType string `xml:"content>type,attr"`
+	Content string `xml:"content"`
 }
 
 type Link struct {

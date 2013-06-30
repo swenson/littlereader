@@ -1,6 +1,7 @@
 package littlereader
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/hoisie/web"
@@ -33,9 +34,9 @@ func readState() {
 }
 
 func index() string {
-	var s = ""
+	var buffer bytes.Buffer
 	var id = 0
-	s += `
+	buffer.WriteString(`
 <!doctype html>
 <html>
 <head>
@@ -49,27 +50,27 @@ function hide(s, link) {
 	$('#' + s).hide();
 }
 </script>
-`
+`)
 	for folderName, folder := range folders {
-		s += fmt.Sprintf("<h2>%s</h2>", folderName)
+		buffer.WriteString(fmt.Sprintf("<h2>%s</h2>", folderName))
 		for _, source := range folder {
-			s += fmt.Sprintf("<h3>%s</h3>", source.Title)
-			s += "<ul>"
+			buffer.WriteString(fmt.Sprintf("<h3>%s</h3>", source.Title))
+			buffer.WriteString("<ul>")
 			for _, entry := range source.Entries {
 				if entry.Read {
 					continue
 				}
-				s += fmt.Sprintf(`<li id="entry_%d">`, id)
-				s += fmt.Sprintf(`<button onClick="hide('entry_%d', '%s'); return false">Mark Read</button> `, id, entry.Url)
-				s += fmt.Sprintf(`<a href="%s">%s</a>`, entry.Url, entry.Title)
-				s += "</li>"
+				buffer.WriteString(fmt.Sprintf(`<li id="entry_%d">`, id))
+				buffer.WriteString(fmt.Sprintf(`<button onClick="hide('entry_%d', '%s'); return false">Mark Read</button> `, id, entry.Url))
+				buffer.WriteString(fmt.Sprintf(`<a href="%s">%s</a>`, entry.Url, entry.Title))
+				buffer.WriteString("</li>")
 				id += 1
 			}
-			s += "</ul>"
+			buffer.WriteString("</ul>")
 		}
 	}
-	s += "</body></html>"
-	return s
+	buffer.WriteString("</body></html>")
+	return buffer.String()
 }
 
 func markAsRead(ctx *web.Context) {
