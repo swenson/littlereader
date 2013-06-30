@@ -11,10 +11,6 @@ import (
 	"time"
 )
 
-func Reader() {
-
-}
-
 type Outline struct {
 	Title    string    `xml:"title,attr"`
 	Text     string    `xml:"text,attr"`
