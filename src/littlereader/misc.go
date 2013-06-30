@@ -3,6 +3,7 @@ package littlereader
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -99,8 +100,8 @@ func Import() {
 
 	for _, feed := range subscriptions {
 		fmt.Printf("Loading feed %s\n", feed)
-		resp, err := http.Get(feed)
 		now := time.Now()
+		resp, err := http.Get(feed)
 
 		if err != nil {
 			fmt.Printf("Error: %s\n", err.Error())
@@ -112,29 +113,15 @@ func Import() {
 			fmt.Printf("Error: %s\n", err.Error())
 			continue
 		}
-		feed := Feed{}
-		err = xml.Unmarshal(body, &feed)
+		source, err := readAtom(now, body)
 		if err != nil {
-			fmt.Printf("Error: %s\n", err.Error())
-			continue
+			source, err = readRss(now, body)
+			if err != nil {
+				fmt.Printf("Could not parse as atom or RSS... skipping\n")
+				continue
+			}
 		}
-		source := Source{}
-		source.Folder = "uncategorized"
-		source.Url = feed.Id
-		source.LastFetched = now
-		source.Title = feed.Title
-		entries := make([]Entry, 0)
-		for _, entry := range feed.Entries {
-			newEntry := Entry{}
-			newEntry.Url = entry.Link.Href
-			newEntry.Author = entry.Author
-			newEntry.Body = entry.Content
-			newEntry.Read = false
-			newEntry.Title = entry.Title
-			entries = append(entries, newEntry)
-		}
-		source.Entries = entries
-		sources = append(sources, source)
+		sources = append(sources, *source)
 	}
 	folders := make(map[string][]Source)
 	folders["uncategorized"] = sources
@@ -148,6 +135,82 @@ func Import() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+type Rss struct {
+	XMLName  xml.Name  `xml:"rss"`
+	Channels []Channel `xml:"channel"`
+}
+
+type Channel struct {
+	Title         string `xml:"title"`
+	Description   string `xml:"description"`
+	Link          string `xml:"link"`
+	LastBuildDate string `xml:"lastBuildDate"`
+	PubDate       string `xml:"pubDate"`
+	Ttl           int    `xml:"ttl"`
+	Items         []Item `xml:"item"`
+}
+
+type Item struct {
+	Title       string `xml:"title"`
+	Description string `xml:"description"`
+	Link        string `xml:"link"`
+	Guid        string `xml:"guid"`
+	PubDate     string `xml:"pubDate"`
+}
+
+func readRss(now time.Time, data []byte) (*Source, error) {
+	rss := Rss{}
+	err := xml.Unmarshal(data, &rss)
+	if err != nil {
+		return nil, err
+	}
+	if len(rss.Channels) != 1 {
+		return nil, errors.New("RSS does not have exactly 1 channel... skipping")
+	}
+	source := new(Source)
+	source.Folder = "uncategorized"
+	source.Url = rss.Channels[0].Link
+	source.LastFetched = now
+	source.Title = rss.Channels[0].Title
+	entries := make([]Entry, 0)
+	for _, item := range rss.Channels[0].Items {
+		newEntry := Entry{}
+		newEntry.Url = item.Link
+		newEntry.Author = ""
+		newEntry.Body = ""
+		newEntry.Read = false
+		newEntry.Title = item.Title
+		entries = append(entries, newEntry)
+	}
+	source.Entries = entries
+	return source, nil
+}
+
+func readAtom(now time.Time, data []byte) (*Source, error) {
+	feed := Feed{}
+	err := xml.Unmarshal(data, &feed)
+	if err != nil {
+		return nil, err
+	}
+	source := new(Source)
+	source.Folder = "uncategorized"
+	source.Url = feed.Id
+	source.LastFetched = now
+	source.Title = feed.Title
+	entries := make([]Entry, 0)
+	for _, entry := range feed.Entries {
+		newEntry := Entry{}
+		newEntry.Url = entry.Link.Href
+		newEntry.Author = entry.Author
+		newEntry.Body = entry.Content
+		newEntry.Read = false
+		newEntry.Title = entry.Title
+		entries = append(entries, newEntry)
+	}
+	source.Entries = entries
+	return source, nil
 }
 
 func flatten(outlines []Outline) []string {
