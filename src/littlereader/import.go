@@ -56,7 +56,7 @@ type Link struct {
 }
 
 type State struct {
-	Folders map[string][]Source
+	Folders map[string][]*Source
 }
 
 type Rss struct {
@@ -87,7 +87,7 @@ type Source struct {
 	Title       string
 	Url         string
 	Folder      string
-	Entries     []Entry
+	Entries     []*Entry
 }
 
 type Entry struct {
@@ -115,7 +115,7 @@ func Import() {
 
 	subscriptions := flatten(v.Body.Outlines)
 
-	sources := make([]Source, 0)
+	sources := make([]*Source, 0)
 
 	for _, feed := range subscriptions {
 		fmt.Printf("Loading feed %s\n", feed)
@@ -140,9 +140,9 @@ func Import() {
 				continue
 			}
 		}
-		sources = append(sources, *source)
+		sources = append(sources, source)
 	}
-	folders := make(map[string][]Source)
+	folders := make(map[string][]*Source)
 	folders["uncategorized"] = sources
 	state := State{folders}
 
@@ -170,9 +170,9 @@ func readRss(now time.Time, data []byte) (*Source, error) {
 	source.Url = rss.Channels[0].Link
 	source.LastFetched = now
 	source.Title = rss.Channels[0].Title
-	entries := make([]Entry, 0)
+	entries := make([]*Entry, 0)
 	for _, item := range rss.Channels[0].Items {
-		newEntry := Entry{}
+		newEntry := new(Entry)
 		newEntry.Url = item.Link
 		newEntry.Author = ""
 		newEntry.Body = ""
@@ -195,9 +195,9 @@ func readAtom(now time.Time, data []byte) (*Source, error) {
 	source.Url = feed.Id
 	source.LastFetched = now
 	source.Title = feed.Title
-	entries := make([]Entry, 0)
+	entries := make([]*Entry, 0)
 	for _, entry := range feed.Entries {
-		newEntry := Entry{}
+		newEntry := new(Entry)
 		newEntry.Url = entry.Link.Href
 		newEntry.Author = entry.Author
 		newEntry.Body = entry.Content
