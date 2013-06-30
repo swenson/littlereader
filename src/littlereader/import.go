@@ -63,6 +63,29 @@ type State struct {
 	Folders map[string][]Source
 }
 
+type Rss struct {
+	XMLName  xml.Name  `xml:"rss"`
+	Channels []Channel `xml:"channel"`
+}
+
+type Channel struct {
+	Title         string `xml:"title"`
+	Description   string `xml:"description"`
+	Link          string `xml:"link"`
+	LastBuildDate string `xml:"lastBuildDate"`
+	PubDate       string `xml:"pubDate"`
+	Ttl           int    `xml:"ttl"`
+	Items         []Item `xml:"item"`
+}
+
+type Item struct {
+	Title       string `xml:"title"`
+	Description string `xml:"description"`
+	Link        string `xml:"link"`
+	Guid        string `xml:"guid"`
+	PubDate     string `xml:"pubDate"`
+}
+
 type Source struct {
 	LastFetched time.Time
 	Title       string
@@ -135,29 +158,6 @@ func Import() {
 	if err != nil {
 		panic(err)
 	}
-}
-
-type Rss struct {
-	XMLName  xml.Name  `xml:"rss"`
-	Channels []Channel `xml:"channel"`
-}
-
-type Channel struct {
-	Title         string `xml:"title"`
-	Description   string `xml:"description"`
-	Link          string `xml:"link"`
-	LastBuildDate string `xml:"lastBuildDate"`
-	PubDate       string `xml:"pubDate"`
-	Ttl           int    `xml:"ttl"`
-	Items         []Item `xml:"item"`
-}
-
-type Item struct {
-	Title       string `xml:"title"`
-	Description string `xml:"description"`
-	Link        string `xml:"link"`
-	Guid        string `xml:"guid"`
-	PubDate     string `xml:"pubDate"`
 }
 
 func readRss(now time.Time, data []byte) (*Source, error) {
