@@ -132,9 +132,9 @@ func Import() {
 			fmt.Printf("Error: %s\n", err.Error())
 			continue
 		}
-		source, err := readAtom(now, body)
+		source, err := readAtom(now, feed, body)
 		if err != nil {
-			source, err = readRss(now, body)
+			source, err = readRss(now, feed, body)
 			if err != nil {
 				fmt.Printf("Could not parse as atom or RSS... skipping\n")
 				continue
@@ -156,7 +156,7 @@ func Import() {
 	}
 }
 
-func readRss(now time.Time, data []byte) (*Source, error) {
+func readRss(now time.Time, url string, data []byte) (*Source, error) {
 	rss := Rss{}
 	err := xml.Unmarshal(data, &rss)
 	if err != nil {
@@ -167,7 +167,7 @@ func readRss(now time.Time, data []byte) (*Source, error) {
 	}
 	source := new(Source)
 	source.Folder = "uncategorized"
-	source.Url = rss.Channels[0].Link
+	source.Url = url
 	source.LastFetched = now
 	source.Title = rss.Channels[0].Title
 	entries := make([]*Entry, 0)
@@ -184,7 +184,7 @@ func readRss(now time.Time, data []byte) (*Source, error) {
 	return source, nil
 }
 
-func readAtom(now time.Time, data []byte) (*Source, error) {
+func readAtom(now time.Time, url string, data []byte) (*Source, error) {
 	feed := Feed{}
 	err := xml.Unmarshal(data, &feed)
 	if err != nil {
@@ -192,7 +192,7 @@ func readAtom(now time.Time, data []byte) (*Source, error) {
 	}
 	source := new(Source)
 	source.Folder = "uncategorized"
-	source.Url = feed.Id
+	source.Url = url
 	source.LastFetched = now
 	source.Title = feed.Title
 	entries := make([]*Entry, 0)
@@ -200,7 +200,7 @@ func readAtom(now time.Time, data []byte) (*Source, error) {
 		newEntry := new(Entry)
 		newEntry.Url = entry.Link.Href
 		newEntry.Author = entry.Author
-		newEntry.Body = entry.Content
+		newEntry.Body = ""
 		newEntry.Read = false
 		newEntry.Title = entry.Title
 		entries = append(entries, newEntry)

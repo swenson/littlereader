@@ -131,6 +131,7 @@ func updater(ticker *time.Ticker) {
 			for _, folder := range folders {
 				for _, source := range folder {
 					now := time.Now()
+					fmt.Printf("Updating feed %s at %s\n", source.Title, source.Url)
 					resp, err := http.Get(source.Url)
 
 					if err != nil {
@@ -143,9 +144,9 @@ func updater(ticker *time.Ticker) {
 						fmt.Printf("Error: %s\n", err.Error())
 						continue
 					}
-					newSource, err := readAtom(now, body)
+					newSource, err := readAtom(now, source.Url, body)
 					if err != nil {
-						newSource, err = readRss(now, body)
+						newSource, err = readRss(now, source.Url, body)
 						if err != nil {
 							fmt.Printf("Could not parse as atom or RSS... skipping\n")
 							continue
