@@ -1,3 +1,7 @@
+// Copyright 2013 Christopher Swenson.
+//
+// This file holds the main web app for little reader.
+
 package littlereader
 
 import (
@@ -14,6 +18,7 @@ import (
 var folders map[string][]*Source
 var dirty = false
 
+// Read the state from disk.
 func readState() {
 	state := State{}
 	wd, err := os.Getwd()
@@ -33,6 +38,7 @@ func readState() {
 	folders = state.Folders
 }
 
+// Generate the main page.
 func index() string {
 	var buffer bytes.Buffer
 	var id = 0
@@ -76,6 +82,7 @@ function hide(s, link) {
 	return buffer.String()
 }
 
+// Checks if the source has any unread entries.
 func anyNonRead(source *Source) bool {
 	for _, entry := range source.Entries {
 		if !entry.Read {
@@ -85,6 +92,7 @@ func anyNonRead(source *Source) bool {
 	return false
 }
 
+// Handler for marking an entry as read.
 func markAsRead(ctx *web.Context) {
 	dirty = true
 	link := ctx.Params["href"]
@@ -100,6 +108,7 @@ func markAsRead(ctx *web.Context) {
 	}
 }
 
+// Goroutine for saving the state.
 func saver(ticker *time.Ticker) {
 	for {
 		select {
@@ -122,6 +131,7 @@ func saver(ticker *time.Ticker) {
 	}
 }
 
+// Goroutine for updating the state.
 func updater(ticker *time.Ticker) {
 	for {
 		select {
@@ -160,6 +170,7 @@ func updater(ticker *time.Ticker) {
 	}
 }
 
+// Check for new entries and append them to the existing source.
 func updateSource(source *Source, newSource *Source) {
 	for _, newEntry := range newSource.Entries {
 		var exists = false
@@ -175,6 +186,7 @@ func updateSource(source *Source, newSource *Source) {
 	}
 }
 
+// Initialize and run the web app.
 func Reader() {
 	readState()
 

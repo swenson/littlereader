@@ -1,3 +1,5 @@
+// Copyright 2013 Christopher Swenson.
+
 package littlereader
 
 import (
@@ -11,6 +13,12 @@ import (
 	"time"
 )
 
+// Our types
+type State struct {
+	Folders map[string][]*Source
+}
+
+// Atom types
 type Outline struct {
 	Title    string    `xml:"title,attr"`
 	Text     string    `xml:"text,attr"`
@@ -55,10 +63,7 @@ type Link struct {
 	Rel  string `xml:"rel,attr"`
 }
 
-type State struct {
-	Folders map[string][]*Source
-}
-
+// RSS types
 type Rss struct {
 	XMLName  xml.Name  `xml:"rss"`
 	Channels []Channel `xml:"channel"`
@@ -98,6 +103,7 @@ type Entry struct {
 	Body   string
 }
 
+// Import feeds from a Google Reader subscriptions.xml file.
 func Import() {
 	file, err := os.Open("subscriptions.xml")
 	if err != nil {
@@ -156,6 +162,7 @@ func Import() {
 	}
 }
 
+// Import an RSS feed
 func readRss(now time.Time, url string, data []byte) (*Source, error) {
 	rss := Rss{}
 	err := xml.Unmarshal(data, &rss)
@@ -184,6 +191,7 @@ func readRss(now time.Time, url string, data []byte) (*Source, error) {
 	return source, nil
 }
 
+// Import an Atom feed.
 func readAtom(now time.Time, url string, data []byte) (*Source, error) {
 	feed := Feed{}
 	err := xml.Unmarshal(data, &feed)
@@ -209,6 +217,7 @@ func readAtom(now time.Time, url string, data []byte) (*Source, error) {
 	return source, nil
 }
 
+// Convert the slice of outlines to a list of URLs.
 func flatten(outlines []Outline) []string {
 	ret := make([]string, 0)
 	for _, o := range outlines {

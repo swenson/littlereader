@@ -1,3 +1,4 @@
+// Copyright 2013 Christopher Swenson.
 package littlereader
 
 import (
