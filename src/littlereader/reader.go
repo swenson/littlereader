@@ -12,11 +12,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 )
 
 var folders map[string][]*Source
 var dirty = false
+var lock = new(sync.Mutex)
 
 // Read the state from disk.
 func readState() {
@@ -69,6 +71,7 @@ Add new subscription: <input type="text" name="url" size=80 />
 </form>
 <br />
 `)
+	lock.Lock()
 	for folderName, folder := range folders {
 		buffer.WriteString(fmt.Sprintf("<h2>%s</h2>", folderName))
 		for _, source := range folder {
@@ -93,6 +96,7 @@ Add new subscription: <input type="text" name="url" size=80 />
 			class += 1
 		}
 	}
+	lock.Unlock()
 	buffer.WriteString("</body></html>")
 	return buffer.String()
 }
@@ -114,7 +118,10 @@ func addNewFeed(ctx *web.Context) string {
 	if err != nil {
 		return err.Error()
 	}
+
+	lock.Lock()
 	folders["uncategorized"] = append(folders["uncategorized"], source)
+	lock.Unlock()
 
 	ctx.Redirect(303, "/")
 	return ""
@@ -122,9 +129,10 @@ func addNewFeed(ctx *web.Context) string {
 
 // Handler for marking an entry as read.
 func markAsRead(ctx *web.Context) {
-	dirty = true
 	link := ctx.Params["href"]
 	fmt.Printf("Marking %s as read\n", link)
+	lock.Lock()
+	dirty = true
 	for _, folder := range folders {
 		for _, source := range folder {
 			for _, entry := range source.Entries {
@@ -134,6 +142,7 @@ func markAsRead(ctx *web.Context) {
 			}
 		}
 	}
+	lock.Unlock()
 }
 
 // Goroutine for saving the state.
@@ -142,6 +151,7 @@ func saver(ticker *time.Ticker) {
 		select {
 		case <-ticker.C:
 			println("Writing state")
+			lock.Lock()
 			if dirty {
 				dirty = false
 				state := State{folders}
@@ -155,6 +165,7 @@ func saver(ticker *time.Ticker) {
 					panic(err)
 				}
 			}
+			lock.Unlock()
 		}
 	}
 }
@@ -165,7 +176,7 @@ func updater(ticker *time.Ticker) {
 		select {
 		case <-ticker.C:
 			println("Updating feeds")
-
+			lock.Lock()
 			for _, folder := range folders {
 				for _, source := range folder {
 					now := time.Now()
@@ -194,6 +205,7 @@ func updater(ticker *time.Ticker) {
 				}
 			}
 			dirty = true
+			lock.Unlock()
 		}
 	}
 }
@@ -218,7 +230,7 @@ func updateSource(source *Source, newSource *Source) {
 func Reader() {
 	readState()
 
-	saveTicker := time.NewTicker(1 * time.Minute)
+	saveTicker := time.NewTicker(15 * time.Second)
 	go saver(saveTicker)
 
 	updateTicker := time.NewTicker(12 * time.Hour)

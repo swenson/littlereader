@@ -1,6 +1,6 @@
 default: run
 
-.PHONY: default run test import lib requirements
+.PHONY: default run test import lib requirements debug
 
 requirements:
 	./requirements.sh
@@ -16,6 +16,9 @@ import: lib
 
 run: lib
 	GOPATH=`pwd` go run src/progs/reader.go
+
+debug: lib
+	GOPATH=`pwd` go run -race src/progs/reader.go
 
 test: requirements
 	GOPATH=`pwd` go test littlereader
