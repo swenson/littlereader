@@ -17,13 +17,13 @@ Features
 * Support Atom and RSS
 * Automatic fetching every 12 hours of new articles
 * Mark items as read
+* Mark all as read
 * Add feeds
 
 TODO
 ====
 
 * Remove feeds easily
-* Mark all as read
 * Any theming
 
 License

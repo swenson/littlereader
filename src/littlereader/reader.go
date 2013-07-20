@@ -42,6 +42,7 @@ func readState() {
 func index() string {
 	var buffer bytes.Buffer
 	var id = 0
+	var class = 0
 	buffer.WriteString(`
 <!doctype html>
 <html>
@@ -52,6 +53,12 @@ function hide(s, link) {
 	var num = s.split('_')[1];
 	$.post('/markAsRead', { href: link });
 	$('#' + s).hide();
+}
+
+function hideAll(s) {
+	$("." + s).each(function(i) {
+    $(this).click();
+	});
 }
 </script>
 </head>
@@ -69,18 +76,21 @@ Add new subscription: <input type="text" name="url" size=80 />
 				continue
 			}
 			buffer.WriteString(fmt.Sprintf("<h3>%s</h3>", source.Title))
+			buffer.WriteString(fmt.Sprintf(`<button onClick="hideAll('source_%d'); return false">Mark all as read</button>`, class))
 			buffer.WriteString("<ul>")
+
 			for _, entry := range source.Entries {
 				if entry.Read {
 					continue
 				}
 				buffer.WriteString(fmt.Sprintf(`<li id="entry_%d">`, id))
-				buffer.WriteString(fmt.Sprintf(`<button onClick="hide('entry_%d', '%s'); return false">Mark Read</button> `, id, entry.Url))
+				buffer.WriteString(fmt.Sprintf(`<button class="source_%d" onClick="hide('entry_%d', '%s'); return false">Mark Read</button> `, class, id, entry.Url))
 				buffer.WriteString(fmt.Sprintf(`<a href="%s">%s</a>`, entry.Url, entry.Title))
 				buffer.WriteString("</li>")
 				id += 1
 			}
 			buffer.WriteString("</ul>")
+			class += 1
 		}
 	}
 	buffer.WriteString("</body></html>")
