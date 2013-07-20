@@ -47,8 +47,6 @@ func index() string {
 <html>
 <head>
 <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-</head>
-<body>
 <script>
 function hide(s, link) {
 	var num = s.split('_')[1];
@@ -56,6 +54,13 @@ function hide(s, link) {
 	$('#' + s).hide();
 }
 </script>
+</head>
+<body>
+<form method="post" action="/add">
+Add new subscription: <input type="text" name="url" size=80 />
+<input type="submit" value="Add" />
+</form>
+<br />
 `)
 	for folderName, folder := range folders {
 		buffer.WriteString(fmt.Sprintf("<h2>%s</h2>", folderName))
@@ -90,6 +95,19 @@ func anyNonRead(source *Source) bool {
 		}
 	}
 	return false
+}
+
+// Handler for adding a new feed
+func addNewFeed(ctx *web.Context) string {
+	url := ctx.Params["url"]
+	source, err := loadFeed(url)
+	if err != nil {
+		return err.Error()
+	}
+	folders["uncategorized"] = append(folders["uncategorized"], source)
+
+	ctx.Redirect(303, "/")
+	return ""
 }
 
 // Handler for marking an entry as read.
@@ -198,5 +216,6 @@ func Reader() {
 
 	web.Get("/", index)
 	web.Post("/markAsRead", markAsRead)
+	web.Post("/add", addNewFeed)
 	web.Run("0.0.0.0:9090")
 }

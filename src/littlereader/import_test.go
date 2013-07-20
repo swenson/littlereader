@@ -49,7 +49,7 @@ test, dev, stage, and prod.&lt;/p&gt;
 </content></entry></feed>`
 
 func TestRss(t *testing.T) {
-	_, err := readRss(time.Now(), []byte(exampleRss))
+	_, err := readRss(time.Now(), "", []byte(exampleRss))
 	if err != nil {
 		fmt.Printf("Could not decode RSS: %v\n", err)
 		t.FailNow()
@@ -57,7 +57,7 @@ func TestRss(t *testing.T) {
 }
 
 func TestAtom(t *testing.T) {
-	_, err := readAtom(time.Now(), []byte(exampleAtom))
+	_, err := readAtom(time.Now(), "", []byte(exampleAtom))
 	if err != nil {
 		fmt.Printf("Could not decode Atom: %v\n", err)
 		t.FailNow()

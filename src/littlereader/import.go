@@ -124,27 +124,9 @@ func Import() {
 	sources := make([]*Source, 0)
 
 	for _, feed := range subscriptions {
-		fmt.Printf("Loading feed %s\n", feed)
-		now := time.Now()
-		resp, err := http.Get(feed)
-
+		source, err := loadFeed(feed)
 		if err != nil {
-			fmt.Printf("Error: %s\n", err.Error())
 			continue
-		}
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Printf("Error: %s\n", err.Error())
-			continue
-		}
-		source, err := readAtom(now, feed, body)
-		if err != nil {
-			source, err = readRss(now, feed, body)
-			if err != nil {
-				fmt.Printf("Could not parse as atom or RSS... skipping\n")
-				continue
-			}
 		}
 		sources = append(sources, source)
 	}
@@ -160,6 +142,32 @@ func Import() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func loadFeed(feed string) (source *Source, err error) {
+	fmt.Printf("Loading feed %s\n", feed)
+	now := time.Now()
+	resp, err := http.Get(feed)
+
+	if err != nil {
+		fmt.Printf("Error: %s\n", err.Error())
+		return
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err.Error())
+		return
+	}
+	source, err = readAtom(now, feed, body)
+	if err != nil {
+		source, err = readRss(now, feed, body)
+		if err != nil {
+			fmt.Printf("Could not parse as atom or RSS... skipping\n")
+			return
+		}
+	}
+	return
 }
 
 // Import an RSS feed
