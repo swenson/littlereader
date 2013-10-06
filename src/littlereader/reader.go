@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sort"
 	"sync"
 	"time"
 )
@@ -78,6 +79,7 @@ Add new subscription: <input type="text" name="url" size=80 />
 			if !anyNonRead(source) {
 				continue
 			}
+			sort.Sort(source)
 			buffer.WriteString(fmt.Sprintf("<h3>%s</h3>", source.Title))
 			buffer.WriteString(fmt.Sprintf(`<button onClick="hideAll('source_%d'); return false">Mark all as read</button>`, class))
 			buffer.WriteString("<ul>")

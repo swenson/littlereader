@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -101,6 +103,20 @@ type Entry struct {
 	Url    string
 	Read   bool
 	Body   string
+	Time   string
+}
+
+// Support sorting
+func (src *Source) Len() int {
+	return len(src.Entries)
+}
+
+func (src *Source) Less(i, j int) bool {
+	return src.Entries[i].Time < src.Entries[j].Time
+}
+
+func (src *Source) Swap(i, j int) {
+	src.Entries[i], src.Entries[j] = src.Entries[j], src.Entries[i]
 }
 
 // Import feeds from a Google Reader subscriptions.xml file.
@@ -128,6 +144,7 @@ func Import() {
 		if err != nil {
 			continue
 		}
+		sort.Sort(source)
 		sources = append(sources, source)
 	}
 	folders := make(map[string][]*Source)
@@ -193,6 +210,7 @@ func readRss(now time.Time, url string, data []byte) (*Source, error) {
 		newEntry.Body = ""
 		newEntry.Read = false
 		newEntry.Title = item.Title
+		newEntry.Time = parseRssTime(item.PubDate)
 		entries = append(entries, newEntry)
 	}
 	source.Entries = entries
@@ -219,6 +237,7 @@ func readAtom(now time.Time, url string, data []byte) (*Source, error) {
 		newEntry.Body = ""
 		newEntry.Read = false
 		newEntry.Title = entry.Title
+		newEntry.Time = parseAtomTime(entry.Updated)
 		entries = append(entries, newEntry)
 	}
 	source.Entries = entries
@@ -239,4 +258,24 @@ func flatten(outlines []Outline) []string {
 		}
 	}
 	return ret
+}
+
+func parseRssTime(s string) string {
+	t, err := time.Parse("Mon, 02 Jan 2006 15:04:05 -0700", strings.TrimSpace(s))
+	if err != nil {
+		// Couldn't parse, just return the string
+		return s
+	}
+	// Return the UNIX timestamp.
+	return fmt.Sprintf("%d", t.Unix())
+}
+
+func parseAtomTime(s string) string {
+	t, err := time.Parse("2006-01-02T15:04:05-07:00", strings.TrimSpace(s))
+	if err != nil {
+		// Couldn't parse, just return the string
+		return s
+	}
+	// Return the UNIX timestamp.
+	return fmt.Sprintf("%d", t.Unix())
 }

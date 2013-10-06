@@ -63,3 +63,17 @@ func TestAtom(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestParseRssTime(t *testing.T) {
+	s := "Mon, 06 Sep 2009 16:45:00 +0000 "
+	if parseRssTime(s) != "1252255500" {
+		t.Errorf("Expected RSS time for %s to be %s, got %s", s, "1252255500", parseRssTime(s))
+	}
+}
+
+func TestParseAtomTime(t *testing.T) {
+	s := "2013-06-01T18:45:38-00:00"
+	if parseAtomTime(s) != "1370112338" {
+		t.Errorf("Expected RSS time for %s to be %s, got %s", s, "1370112338", parseAtomTime(s))
+	}
+}
