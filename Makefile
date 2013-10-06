@@ -1,6 +1,6 @@
 default: run
 
-.PHONY: default run test import lib requirements debug
+.PHONY: default run test import lib requirements debug clean
 
 requirements:
 	./requirements.sh
@@ -22,3 +22,6 @@ debug: lib
 
 test: requirements
 	GOPATH=`pwd` go test littlereader
+
+clean:
+	rm -f reader
