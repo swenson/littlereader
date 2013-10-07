@@ -180,14 +180,10 @@ func saver(ticker *time.Ticker) {
 				state := State{folders}
 
 				bytes, err := json.Marshal(state)
+				if err != nil {
+					panic(err)
+				}
 
-				if err != nil {
-					panic(err)
-				}
-				err = ioutil.WriteFile("state.json", bytes, 0644)
-				if err != nil {
-					panic(err)
-				}
 				// write to S3
 				auth, err := aws.EnvAuth()
 				if err != nil {
