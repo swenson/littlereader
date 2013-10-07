@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"github.com/hoisie/web"
 	"io/ioutil"
+	"launchpad.net/goamz/aws"
+	"launchpad.net/goamz/s3"
 	"net/http"
 	"os"
 	"sort"
@@ -21,19 +23,35 @@ var folders map[string][]*Source
 var dirty = false
 var lock = new(sync.Mutex)
 
-// Read the state from disk.
+const s3_bucket = "swenson_rss"
+
+// Read the state from S3.
 func readState() {
 	state := State{}
 	wd, err := os.Getwd()
 	fmt.Printf("wd: %s\n", wd)
-	file, err := os.Open("state.json")
+
+	// read from S3
+	auth, err := aws.EnvAuth()
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
-	data, err := ioutil.ReadAll(file)
-	if err != nil {
-		panic(err)
-	}
+	s := s3.New(auth, aws.USEast)
+	bucket := s.Bucket(s3_bucket)
+	data, err := bucket.Get("rss.json")
+	fmt.Printf("Data read from S3\n")
+
+	// old way
+	/*
+		file, err := os.Open("state.json")
+		if err != nil {
+			panic(err)
+		}
+		data, err := ioutil.ReadAll(file)
+		if err != nil {
+			panic(err)
+		}
+	*/
 	err = json.Unmarshal(data, &state)
 	if err != nil {
 		panic(err)
@@ -159,6 +177,7 @@ func saver(ticker *time.Ticker) {
 				state := State{folders}
 
 				bytes, err := json.Marshal(state)
+
 				if err != nil {
 					panic(err)
 				}
@@ -166,6 +185,14 @@ func saver(ticker *time.Ticker) {
 				if err != nil {
 					panic(err)
 				}
+				// write to S3
+				auth, err := aws.EnvAuth()
+				if err != nil {
+					panic(err.Error())
+				}
+				s := s3.New(auth, aws.USEast)
+				bucket := s.Bucket(s3_bucket)
+				bucket.Put("rss.json", bytes, "application/json", s3.ACL("private"))
 			}
 			lock.Unlock()
 		}
