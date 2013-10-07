@@ -39,6 +39,9 @@ func readState() {
 	s := s3.New(auth, aws.USEast)
 	bucket := s.Bucket(s3_bucket)
 	data, err := bucket.Get("rss.json")
+	if err != nil {
+		panic(err)
+	}
 	fmt.Printf("Data read from S3\n")
 
 	// old way
@@ -188,11 +191,14 @@ func saver(ticker *time.Ticker) {
 				// write to S3
 				auth, err := aws.EnvAuth()
 				if err != nil {
-					panic(err.Error())
+					panic(err)
 				}
 				s := s3.New(auth, aws.USEast)
 				bucket := s.Bucket(s3_bucket)
-				bucket.Put("rss.json", bytes, "application/json", s3.ACL("private"))
+				err = bucket.Put("rss.json", bytes, "application/json", s3.ACL("private"))
+				if err != nil {
+					panic(err)
+				}
 			}
 			lock.Unlock()
 		}
