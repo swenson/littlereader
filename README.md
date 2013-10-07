@@ -19,6 +19,7 @@ Features
 * Mark items as read
 * Mark all as read
 * Add feeds
+* Uses S3 for storage
 
 TODO
 ====
