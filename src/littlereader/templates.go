@@ -4,6 +4,15 @@ var indexTemplate = `
 <!doctype html>
 <html>
 <head>
+<style type="text/css">
+body {
+	margin: 20px 20px 0 20px;
+	background-color: #fafaf8;
+	font: 14px 'Lucida Grande', 'Lucida Sans Unicode', Verdana, Helvetica, Arial, Sans-Serif;
+	color: #151515;
+}
+</style>
+
 <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 <script>
 function hide(s, link) {
