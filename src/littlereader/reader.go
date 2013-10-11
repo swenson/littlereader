@@ -67,32 +67,7 @@ func index() string {
 	var buffer bytes.Buffer
 	var id = 0
 	var class = 0
-	buffer.WriteString(`
-<!doctype html>
-<html>
-<head>
-<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-<script>
-function hide(s, link) {
-	var num = s.split('_')[1];
-	$.post('/markAsRead', { href: link });
-	$('#' + s).hide();
-}
-
-function hideAll(s) {
-	$("." + s).each(function(i) {
-    $(this).click();
-	});
-}
-</script>
-</head>
-<body>
-<form method="post" action="/add">
-Add new subscription: <input type="text" name="url" size=80 />
-<input type="submit" value="Add" />
-</form>
-<br />
-`)
+	buffer.WriteString(indexTemplate)
 	lock.Lock()
 	for folderName, folder := range folders {
 		buffer.WriteString(fmt.Sprintf("<h2>%s</h2>", folderName))
