@@ -8,8 +8,17 @@ It's written in Go, and is fairly simple to get up and running.
 1. Clone the repo.
 2. Copy your `subscriptions.xml` from your Google Reader takeout.
 3. Run `make import`
-4. Run `make run`
-5. Go to http://localhost:9090/
+4. Export your AWS S3 credentials to the standard variables, e.g.,
+
+```bash
+export AWS_ACCESS_KEY_ID=something
+export AWS_SECRET_ACCESS_KEY=something
+```
+
+(I keep these in a script.)
+
+5. Run `make run`
+6. Go to http://localhost:9090/
 
 Features
 ========
